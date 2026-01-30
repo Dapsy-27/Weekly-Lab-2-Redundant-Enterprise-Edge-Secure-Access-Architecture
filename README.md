@@ -1,6 +1,14 @@
 # Weekly-Lab-2-Redundant-Enterprise-Edge-Secure-Access-Architecture
 This lab simulates a high-availability enterprise environment featuring a redundant distribution layer and a secured access layer. The design focuses on redundancy (HSRP, OSPF), security (DHCP Snooping, DAI, SSH), and network services (NAT, DHCP, NTP in WAT timezone)
 
+## Replicating This Lab
+1. Import the `topology.gns3` or `eve-ng.unl` file.
+2. Ensure your IOSv-L2 and IOSv images match the versions in the configs.
+3. Apply configurations in this order:
+   - NAT/Services first.
+   - Core/Distribution routing.
+   - Access Layer Security last (to avoid being locked out).
+
 ## Overview
 This repository contains the configuration files and architecture details for a multi-vlan enterprise network lab. 
 
