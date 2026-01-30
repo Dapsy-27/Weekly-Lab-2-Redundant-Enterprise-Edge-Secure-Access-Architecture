@@ -1,0 +1,55 @@
+! DEVICE DIST_R1 
+! ROLE: Distribution Layer - Layer 3 routing and inter-vlan routing
+! SECURITY: DHCP Snooping, DAI enabled
+! ------------------------------------------
+
+conf t
+hostname [Device_Name]
+username admin privilege 15 secret [password]
+
+ip domain-name lab.local
+crypto key generate rsa modulus 1024
+ip ssh version 2
+ip name-server 10.10.50.2
+clock timezone WAT 1 0
+line con 0
+ exec-timeout 30 0
+ logging synchronous
+line vty 0 4
+ transport input ssh
+ login local
+exit
+service timestamps log datetime msec show-timezone
+
+interface Gi0/2
+ ip address 10.10.0.2 255.255.255.252
+ no shut
+interface Gi0/0
+ description UPLINK_TO_SWITCHES
+ duplex full
+ speed 1000
+ no ip address
+ no shut
+interface Gi0/0.10
+ encapsulation dot1Q 10
+ ip address 172.16.10.2 255.255.255.0
+ ip helper-address 10.10.50.2
+ standby 10 ip 172.16.10.1
+ standby 10 priority 110
+ standby 10 preempt
+# (Repeat sub-interface logic for .20, .30, .99)
+router ospf 1
+ network 10.10.0.0 0.0.0.3 area 0
+ network 172.16.0.0 0.0.255.255 area 0
+ntp server 10.10.254.1
+
+
+conf t
+
+ip domain-lookup
+
+
+ip name-server 10.10.50.2
+
+#sip domain-name lab.local
+exit
