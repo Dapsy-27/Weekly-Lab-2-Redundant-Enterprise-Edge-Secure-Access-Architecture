@@ -1,0 +1,59 @@
+! DEVICE: NEW_SW
+! ROLE: Access Switch - VLAN 10/20 Termination
+! SECURITY: DHCP Snooping, DAI enabled
+! ------------------------------------------
+
+conf t
+hostname NEW_SW
+username admin privilege 15 secret [password]
+ip domain-name lab.local
+crypto key generate rsa modulus 1024
+ip ssh version 2
+ip name-server 10.10.50.2
+clock timezone WAT 1 0
+service timestamps log datetime msec show-timezone
+line con 0
+ exec-timeout 30 0
+ logging synchronous
+line vty 0 4
+ transport input ssh
+ login local
+exit
+
+vlan 10,20,30,99
+exit
+
+Vlan 10
+ name USERS
+Vlan 20
+ name VOICES
+Vlan 30
+ name SERVERS
+Vlan 40
+ name Management
+interface vlan 99
+ ip address 172.16.99.12 255.255.255.0
+ no shut
+ip default-gateway 172.16.99.1
+
+!Security & Trunks
+ip dhcp snooping
+ip dhcp snooping vlan 10,20,30,99
+no ip dhcp snooping information option
+ip arp inspection vlan 10,20,30,99
+interface Gi0/0
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,99
+ ip dhcp snooping trust
+ ip arp inspection trust
+ duplex full
+ speed 1000
+
+!Access Ports
+interface range Gi0/2 - 3
+ switchport mode access
+ switchport access vlan 10
+ switchport voice vlan 20
+ spanning-tree portfast
+ntp server 10.10.254.1
