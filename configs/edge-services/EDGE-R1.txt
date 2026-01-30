@@ -1,0 +1,41 @@
+! DEVICE DIST_R1 
+! ROLE: Distribution Layer - Layer 3 routing and inter-vlan routing
+! SECURITY: DHCP Snooping, DAI enabled
+! ------------------------------------------
+
+conf t
+hostname [Device_Name]
+# User and SSH
+username admin privilege 15 secret [password]
+ip domain-name lab.local
+crypto key generate rsa modulus 1024
+ip ssh version 2
+
+# Line Configuration
+line con 0
+ exec-timeout 30 0
+ logging synchronous
+line vty 0 4
+ transport input ssh
+ login local
+exit
+
+interface Gi0/0
+ ip address 10.10.254.2 255.255.255.252
+ no shut
+
+interface Gi0/1
+ ip address 10.10.0.1 255.255.255.252
+ no shut
+
+interface Gi0/2
+ ip address 10.10.0.5 255.255.255.252
+ no shut
+
+interface Gi0/3
+ ip address 10.10.50.1 255.255.255.252
+ no shut
+
+router ospf 1
+ network 10.10.0.0 0.255.255.255 area 0
+exit

@@ -1,0 +1,47 @@
+! DEVICE NAT_SERVER
+! ROLE: Distribution Layer - Layer 3 routing and inter-vlan routing
+! SECURITY: DHCP Snooping, DAI enabled
+! ------------------------------------------
+
+conf t NAT_SERVER
+hostname 
+# User and SSH
+username admin privilege 15 secret [password]
+ip domain-name lab.local
+crypto key generate rsa modulus 1024
+ip ssh version 2
+
+# Line Configuration
+line con 0
+ exec-timeout 30 0
+ logging synchronous
+line vty 0 4
+ transport input ssh
+ login local
+exit
+
+interface Gi0/0
+ description Internet_Link
+ ip address dhcp
+ ip nat outside
+ no shut
+
+interface Gi0/1
+ description Link_to_EDGE-R1
+ ip address 10.10.254.1 255.255.255.252
+ ip nat inside
+ no shut
+
+# NAT Setup
+access-list 1 permit 10.0.0.0 0.255.255.255
+access-list 1 permit 172.16.0.0 0.15.255.255
+ip nat inside source list 1 interface Gi0/0 overload
+
+# OSPF & Default Route
+router ospf 1
+ network 10.10.254.0 0.0.0.3 area 0
+ default-information originate
+exit
+
+# NTP Server
+ntp master 1

@@ -1,0 +1,58 @@
+! DEVICE DIST_R1 
+! ROLE: Distribution Layer - Layer 3 routing and inter-vlan routing
+! SECURITY: DHCP Snooping, DAI enabled
+! ------------------------------------------
+
+conf t
+hostname [Device_Name]
+# User and SSH
+username admin privilege 15 secret CCNA272#
+ip domain-name lab.local
+crypto key generate rsa modulus 1024
+ip ssh version 2
+
+# Line Configuration
+line con 0
+ exec-timeout 30 0
+ logging synchronous
+line vty 0 4
+ transport input ssh
+ login local
+exit
+
+interface Gi0/0
+ ip address 10.10.50.2 255.255.255.252
+ no shut
+
+ip dhcp excluded-address 172.16.10.1 172.16.10.10
+# DNS Setup
+ip dns server
+ip host google.com 8.8.8.8
+
+# DHCP Pool for Users
+ip dhcp pool USERS_POOL
+ network 172.16.10.0 255.255.255.0
+ default-router 172.16.10.1
+ dns-server 10.10.50.2
+
+
+ip dhcp pool VOICE_POOL
+ network 172.16.20.0 255.255.255.0
+ default-router 172.16.20.1
+ dns-server 10.10.50.2
+ option 150 ip 10.10.50.2  # Pointing to the server for phone configs
+exit
+ 
+router ospf 1
+ network 10.10.50.0 0.0.0.3 area 0
+
+conf t
+# Enable DNS resolution (usually on by default, but safe to verify)
+ip domain-lookup
+
+# Define the DNS server address
+ip name-server 10.10.50.2
+
+# Optional: Define a default domain to append to unqualified hostnames
+ip domain-name lab.local
+exit
